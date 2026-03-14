@@ -1,0 +1,47 @@
+{
+  "name": "@jfilhogn/qaops",
+  "version": "1.0.0",
+  "description": "QAOps — Test Pyramid Squad installer for AIOX projects. Installs 5 specialized QA agents (unit, integration, E2E, analyst, chief) following the Test Pyramid methodology.",
+  "main": "src/installer.js",
+  "bin": {
+    "qaops": "./bin/qaops.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "squads/",
+    ".claude/"
+  ],
+  "scripts": {
+    "prepublishOnly": "node scripts/bundle.js",
+    "test": "echo \"No tests yet\""
+  },
+  "keywords": [
+    "qaops",
+    "testing",
+    "test-pyramid",
+    "qa",
+    "aiox",
+    "squad",
+    "claude-code",
+    "agents",
+    "quality-assurance",
+    "unit-testing",
+    "integration-testing",
+    "e2e-testing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SynkraAI/aiox-core.git",
+    "directory": "packages/qaops-install"
+  },
+  "bugs": {
+    "url": "https://github.com/SynkraAI/aiox-core/issues"
+  },
+  "homepage": "https://github.com/SynkraAI/aiox-core/tree/main/squads/qaops#readme",
+  "author": "Synkra AIOX Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

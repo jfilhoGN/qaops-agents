@@ -1,0 +1,126 @@
+# Testing Vocabulary — Shared Terminology for QAOps Squad
+# Ensures consistent language across all QAOps agents
+
+terms:
+  # Test Pyramid
+  test_pyramid:
+    definition: "A metaphor for layered testing: many unit tests (base), fewer integration tests (middle), fewest E2E tests (top)"
+    synonyms: [testing pyramid, test triangle, test automation pyramid]
+
+  # Unit Testing Terms
+  unit_test:
+    definition: "A test that verifies a single unit of code (function, method, class) in complete isolation from external dependencies"
+    agent: qa-unit
+
+  mock:
+    definition: "A test double that records how it was called and can be programmed to return specific values"
+    example: "jest.fn().mockReturnValue(42)"
+
+  stub:
+    definition: "A test double that returns predetermined values without recording calls"
+    example: "const getUser = () => ({ id: 1, name: 'Test' })"
+
+  spy:
+    definition: "A wrapper around a real function that records calls while preserving original behavior"
+    example: "jest.spyOn(module, 'method')"
+
+  test_double:
+    definition: "Generic term for mock, stub, spy, fake, or dummy used in place of a real dependency"
+
+  fixture:
+    definition: "Predetermined test data or state used to set up tests consistently"
+
+  coverage:
+    definition: "Metric measuring which code paths are exercised by tests (line, branch, function, statement)"
+
+  tdd:
+    definition: "Test-Driven Development: write test first (RED), make it pass (GREEN), improve code (REFACTOR)"
+
+  arrange_act_assert:
+    definition: "Pattern for structuring unit tests: set up data (Arrange), execute code (Act), verify result (Assert)"
+    synonyms: [AAA, given-when-then]
+
+  # Integration Testing Terms
+  integration_test:
+    definition: "A test that verifies the interaction between two or more system components (e.g., API + database)"
+    agent: qa-integration
+
+  contract_test:
+    definition: "A test that verifies the agreement (contract) between a service provider and its consumers"
+
+  narrow_integration:
+    definition: "Integration test focused on a single boundary (e.g., one API endpoint + its handler)"
+
+  broad_integration:
+    definition: "Integration test spanning multiple boundaries (e.g., API + service + database)"
+
+  consumer_driven:
+    definition: "Contract testing approach where the consumer defines expectations the provider must meet"
+
+  schema_validation:
+    definition: "Verifying that API responses match their defined JSON/OpenAPI schema"
+
+  # E2E Testing Terms
+  e2e_test:
+    definition: "A test that validates a complete user flow through the full application stack, simulating real user behavior"
+    agent: qa-e2e
+    synonyms: [end-to-end test, acceptance test, functional test]
+
+  page_object:
+    definition: "Design pattern that encapsulates page structure and interactions in a reusable class"
+
+  selector:
+    definition: "Strategy for locating UI elements in the DOM (data-testid, role, label, CSS)"
+
+  visual_regression:
+    definition: "Testing technique that captures screenshots and compares against baselines to detect unintended visual changes"
+
+  accessibility_test:
+    definition: "Testing that verifies WCAG 2.1 compliance (screen readers, keyboard navigation, contrast)"
+    synonyms: [a11y test]
+
+  # Analysis Terms
+  equivalence_partition:
+    definition: "Dividing input data into classes where all values in a class are expected to be treated the same"
+    agent: qa-analyst
+
+  boundary_value:
+    definition: "Testing at the edges of equivalence partitions (min, min+1, max-1, max)"
+
+  bdd:
+    definition: "Behavior-Driven Development: specification by example using Given-When-Then format"
+    synonyms: [behavior-driven development]
+
+  gherkin:
+    definition: "Plain-text language for writing BDD scenarios (Feature, Scenario, Given, When, Then)"
+
+  traceability_matrix:
+    definition: "Document mapping requirements to test scenarios to verify complete coverage"
+
+  risk_based_testing:
+    definition: "Prioritizing test effort based on probability and impact of failure"
+
+  decision_table:
+    definition: "Tabular representation of business rules showing all condition combinations and expected actions"
+
+  state_transition:
+    definition: "Testing valid and invalid transitions between states in a stateful system"
+
+  exploratory_testing:
+    definition: "Simultaneous test design and execution, guided by a charter but not scripted"
+
+  # Quality Metrics
+  flaky_test:
+    definition: "A test that sometimes passes and sometimes fails without code changes. Must be fixed or deleted."
+
+  test_isolation:
+    definition: "Ensuring tests don't depend on each other's execution or shared state"
+
+  idempotent_test:
+    definition: "A test that produces the same result regardless of how many times it runs"
+
+  false_positive:
+    definition: "A test that passes when it should fail (missing assertion or wrong expectation)"
+
+  false_negative:
+    definition: "A test that fails when it should pass (flaky, environment-dependent)"

@@ -1,0 +1,231 @@
+workflow:
+  id: wf-test-pyramid
+  name: Test Pyramid Full Coverage Workflow
+  version: "1.0.0"
+  description: |
+    Complete test pyramid workflow that orchestrates all 4 specialist agents
+    to produce comprehensive test coverage for a feature. Flows from analysis
+    (scenarios) through all pyramid layers, ending with a consolidated coverage report.
+  type: sequential
+  project_types:
+    - greenfield
+    - brownfield
+    - feature-development
+
+  metadata:
+    elicit: true
+    confirmation_required: true
+    squad: qaops
+
+  execution_modes:
+    - mode: yolo
+      description: Autonomous execution through all pyramid layers
+      prompts: 0-1
+    - mode: interactive
+      description: Checkpoints between each pyramid layer
+      prompts: 4-6
+      default: true
+    - mode: preflight
+      description: Complete planning before any test design
+      prompts: "8-12"
+
+  config:
+    skip_layers: []   # Can skip e.g., ["e2e"] for backend-only features
+    parallel_layers: false  # Sequential by default
+
+  phases:
+    - phase_1: Scenario Derivation
+    - phase_2: Unit Test Design
+    - phase_3: Integration Test Design
+    - phase_4: E2E Test Design
+    - phase_5: Pyramid Coverage Report
+
+  sequence:
+    - step: analyze_requirements
+      id: analysis
+      phase: 1
+      agent: qa-analyst
+      action: Derive test scenarios from requirements
+      task: derive-test-scenarios.md
+      notes: |
+        Sage (QA Analyst) derives all test scenarios from the provided
+        user story, feature description, or acceptance criteria.
+
+        This phase MUST run first — all other phases use its output.
+
+        Output includes:
+        - Equivalence partitions
+        - Boundary values
+        - BDD scenarios (Gherkin)
+        - Risk matrix
+        - Traceability matrix
+        - Pyramid layer recommendations
+
+        Criterios de sucesso:
+        - [ ] All AC have at least one scenario
+        - [ ] Equivalence partitions identified
+        - [ ] Boundary values defined
+        - [ ] Risk matrix created
+      outputs:
+        - test_scenarios
+        - traceability_matrix
+      next: unit_design
+
+    - step: design_unit_tests
+      id: unit_design
+      phase: 2
+      agent: qa-unit
+      action: Design unit tests from scenarios
+      task: design-unit-tests.md
+      requires: analysis
+      notes: |
+        Prism (QA Unit) designs unit tests based on the scenarios
+        derived by Sage. Focuses on:
+        - Isolated function/class testing
+        - Mock strategy for external dependencies
+        - AAA pattern (Arrange-Act-Assert)
+        - Coverage targets (line, branch, function)
+
+        Criterios de sucesso:
+        - [ ] All unit-level scenarios have tests
+        - [ ] Mock strategy documented
+        - [ ] Coverage target defined
+        - [ ] Test code is syntactically valid
+      outputs:
+        - unit_test_spec
+        - mock_strategy
+      next: integration_design
+
+    - step: design_integration_tests
+      id: integration_design
+      phase: 3
+      agent: qa-integration
+      action: Design integration tests for service boundaries
+      task: design-integration-tests.md
+      requires: analysis
+      notes: |
+        Nexo (QA Integration) designs integration tests for service
+        boundaries. Focuses on:
+        - API contract compliance
+        - Database persistence verification
+        - Error path coverage (4xx, 5xx)
+        - Test data setup/teardown
+
+        Criterios de sucesso:
+        - [ ] API contracts defined
+        - [ ] Success and error paths tested
+        - [ ] Persistence verified
+        - [ ] Test data strategy defined
+      outputs:
+        - integration_test_spec
+        - contract_definitions
+      next: e2e_design
+
+    - step: design_e2e_tests
+      id: e2e_design
+      phase: 4
+      agent: qa-e2e
+      action: Design E2E tests for critical user flows
+      task: design-e2e-tests.md
+      requires: analysis
+      condition: "'e2e' not in config.skip_layers"
+      notes: |
+        Pixel (QA E2E) designs end-to-end tests for critical user
+        flows. Focuses on:
+        - User journey mapping
+        - Page Object Models
+        - Resilient selectors (data-testid, role)
+        - Accessibility compliance
+
+        SKIPPED if:
+        - Feature is backend-only (no UI)
+        - config.skip_layers includes 'e2e'
+
+        Criterios de sucesso:
+        - [ ] Critical user journey tested
+        - [ ] Page Objects created
+        - [ ] Selectors are resilient
+        - [ ] Accessibility check included
+      outputs:
+        - e2e_test_spec
+        - page_objects
+      next: pyramid_report
+
+    - step: generate_pyramid_report
+      id: pyramid_report
+      phase: 5
+      agent: qa-chief
+      action: Consolidate pyramid coverage report
+      task: pyramid-coverage-report.md
+      requires: [analysis, unit_design, integration_design]
+      notes: |
+        Vega (QA Chief) consolidates all specialist outputs into
+        a unified pyramid coverage report. Includes:
+        - Pyramid ratio calculation
+        - Balance assessment
+        - Coverage gap identification
+        - Actionable recommendations
+
+        Criterios de sucesso:
+        - [ ] All specialist outputs collected
+        - [ ] Pyramid ratio calculated
+        - [ ] Gaps identified
+        - [ ] Recommendations provided
+      outputs:
+        - pyramid_report
+        - coverage_summary
+
+    - workflow_end:
+      id: complete
+      action: pyramid_workflow_complete
+      notes: |
+        Test pyramid workflow complete!
+
+        Cycle completed:
+        - Sage derived test scenarios
+        - Prism designed unit tests
+        - Nexo designed integration tests
+        - Pixel designed E2E tests (if applicable)
+        - Vega consolidated coverage report
+
+  flow_diagram: |
+    ```mermaid
+    graph TD
+        A[Start: Test Pyramid Workflow] --> B[Sage: Derive Scenarios]
+        B --> C[Prism: Design Unit Tests]
+        C --> D[Nexo: Design Integration Tests]
+        D --> E{Has UI?}
+        E -->|Yes| F[Pixel: Design E2E Tests]
+        E -->|No| G[Vega: Pyramid Report]
+        F --> G
+        G --> H[Pyramid Complete!]
+
+        style H fill:#90EE90
+        style B fill:#FFE4B5
+        style C fill:#87CEEB
+        style D fill:#DDA0DD
+        style F fill:#FFB6C1
+        style G fill:#98FB98
+    ```
+
+  decision_guidance:
+    when_to_use:
+      - Comprehensive test coverage for a new feature
+      - Test strategy for a release or milestone
+      - When all pyramid layers need coverage planning
+      - After brownfield discovery identifies test gaps
+
+    when_not_to_use:
+      - Single-layer test design (use specialist directly)
+      - Quick unit test for a small function
+      - Reviewing existing tests (use *validate-architecture)
+
+metadata:
+  author: Vega (QAOps Chief)
+  created_date: 2026-03-14
+  version: 1.0.0
+  tags:
+    - testing
+    - test-pyramid
+    - quality
+    - qaops

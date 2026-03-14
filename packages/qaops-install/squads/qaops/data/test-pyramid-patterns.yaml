@@ -1,0 +1,170 @@
+# Test Pyramid Patterns — Framework-Specific Reference
+# Used by all QAOps agents for framework-aware test generation
+
+pyramid:
+  description: |
+    The test pyramid is a metaphor for thinking about tests in terms of layers.
+    The base layer (unit) should have the most tests, the middle layer (integration)
+    fewer tests, and the top layer (E2E) the fewest tests.
+  ratio: "70:20:10"
+  layers:
+    - name: unit
+      position: base
+      percentage: 70
+      speed: milliseconds
+      cost: low
+      reliability: high
+      agent: qa-unit
+
+    - name: integration
+      position: middle
+      percentage: 20
+      speed: seconds
+      cost: medium
+      reliability: medium
+      agent: qa-integration
+
+    - name: e2e
+      position: top
+      percentage: 10
+      speed: "seconds-to-minutes"
+      cost: high
+      reliability: low
+      agent: qa-e2e
+
+# Framework-specific patterns for each pyramid layer
+frameworks:
+  javascript:
+    unit:
+      jest:
+        test_block: "describe/it"
+        assertion: "expect().toBe(), expect().toEqual()"
+        mock: "jest.fn(), jest.mock(), jest.spyOn()"
+        setup: "beforeEach/afterEach"
+        coverage: "jest --coverage"
+        config: "jest.config.js"
+        patterns:
+          - "Arrange-Act-Assert (AAA)"
+          - "test.each() for parameterized tests"
+          - "jest.mock() for module mocking"
+
+      vitest:
+        test_block: "describe/it"
+        assertion: "expect().toBe(), expect().toEqual()"
+        mock: "vi.fn(), vi.mock(), vi.spyOn()"
+        setup: "beforeEach/afterEach"
+        coverage: "vitest --coverage"
+        config: "vitest.config.ts"
+        patterns:
+          - "Compatible with Jest API"
+          - "Native ESM support"
+          - "In-source testing with vi.hoisted()"
+
+    integration:
+      supertest:
+        description: "HTTP assertion library for Node.js"
+        test_pattern: "request(app).get('/endpoint').expect(200)"
+        setup: "Create app instance, seed test data"
+        teardown: "Clean test data, close connections"
+
+      pact:
+        description: "Consumer-driven contract testing"
+        test_pattern: "provider.addInteraction({...})"
+        setup: "Define consumer expectations"
+        verification: "Provider verifies against pact file"
+
+    e2e:
+      playwright:
+        test_block: "test.describe/test"
+        assertion: "expect(locator).toBeVisible()"
+        page_object: "class LoginPage { constructor(page) {...} }"
+        selectors:
+          preferred: ["data-testid", "getByRole", "getByLabel"]
+          avoid: ["CSS classes", "tag positions", "XPath"]
+        wait_strategy: "waitForSelector, waitForLoadState"
+        config: "playwright.config.ts"
+
+      cypress:
+        test_block: "describe/it"
+        assertion: "cy.get().should('be.visible')"
+        page_object: "Custom commands or class-based"
+        selectors:
+          preferred: ["data-cy", "data-testid"]
+          avoid: ["CSS classes", "tag positions"]
+        wait_strategy: "cy.intercept() + cy.wait()"
+        config: "cypress.config.ts"
+
+  python:
+    unit:
+      pytest:
+        test_block: "def test_*()"
+        assertion: "assert value == expected"
+        mock: "@pytest.fixture, unittest.mock.patch"
+        setup: "@pytest.fixture(autouse=True)"
+        coverage: "pytest --cov"
+        config: "pyproject.toml [tool.pytest]"
+        patterns:
+          - "Fixture-based dependency injection"
+          - "@pytest.mark.parametrize for parameterized"
+          - "conftest.py for shared fixtures"
+
+    integration:
+      httpx:
+        description: "Async HTTP client for Python"
+        test_pattern: "async with AsyncClient(app=app) as ac: response = await ac.get('/')"
+
+    e2e:
+      playwright_python:
+        test_block: "def test_*(page)"
+        assertion: "expect(page.locator()).to_be_visible()"
+        config: "pytest-playwright"
+
+  java:
+    unit:
+      junit5:
+        test_block: "@Test void test*()"
+        assertion: "assertEquals, assertTrue, assertThrows"
+        mock: "@Mock, @InjectMocks (Mockito)"
+        setup: "@BeforeEach/@AfterEach"
+        coverage: "JaCoCo"
+        patterns:
+          - "@ExtendWith(MockitoExtension.class)"
+          - "@ParameterizedTest for data-driven"
+          - "AssertJ for fluent assertions"
+
+# Anti-patterns (shared across all frameworks)
+anti_patterns:
+  unit:
+    - name: "Testing implementation details"
+      description: "Testing private methods or internal state instead of public behavior"
+      fix: "Test the public API, not the internals"
+
+    - name: "Over-mocking"
+      description: "Mocking collaborators within the same module"
+      fix: "Only mock external boundaries (DB, API, filesystem)"
+
+    - name: "Flaky tests with time/random"
+      description: "Tests that depend on Date.now() or Math.random()"
+      fix: "Inject time/random as dependencies, use deterministic values in tests"
+
+  integration:
+    - name: "Shared test data"
+      description: "Tests sharing database state, causing order-dependent failures"
+      fix: "Each test creates and cleans up its own data"
+
+    - name: "Testing too broad"
+      description: "Integration test that tests the entire stack instead of one boundary"
+      fix: "Narrow the test to one integration point"
+
+  e2e:
+    - name: "Sleep-based waits"
+      description: "Using fixed timeouts instead of waiting for state"
+      fix: "Wait for specific elements or network idle"
+
+    - name: "CSS class selectors"
+      description: "Using .btn-primary as selector"
+      fix: "Use data-testid or getByRole"
+
+    - name: "Too many E2E tests"
+      description: "Testing everything at E2E level"
+      fix: "Push tests down the pyramid. E2E only for critical user journeys"

@@ -1,0 +1,182 @@
+# ===============================================================================
+# Squad: QAOps — Test Pyramid Specialists
+# Domain: Software Quality Assurance
+# Created: 2026-03-14
+# Version: 1.0.0
+# ===============================================================================
+
+squad:
+  name: qaops
+  display_name: "QAOps — Test Pyramid Squad"
+  version: "1.0.0"
+  domain: "Software Quality Assurance — Test Pyramid Specialists"
+  description: |
+    Squad especializado em qualidade de software baseado na Piramide de Testes.
+    Cinco agentes especializados cobrem desde analise de requisitos e derivacao
+    de cenarios ate testes unitarios, de integracao e end-to-end. Cada agente
+    e um consultor senior com profundo conhecimento de frameworks, padroes e
+    melhores praticas de QA.
+
+  philosophy: |
+    "Quality is not an act, it is a habit." — Aristotle
+    O squad segue a piramide de testes como principio organizacional:
+    base larga de testes unitarios, camada media de integracao, topo
+    estreito de E2E. O QA Analyst transversaliza derivando cenarios
+    de teste a partir de requisitos antes que qualquer teste seja escrito.
+
+  keywords:
+    - testing
+    - unit-test
+    - integration-test
+    - e2e
+    - end-to-end
+    - test-pyramid
+    - coverage
+    - mock
+    - stub
+    - fixture
+    - playwright
+    - cypress
+    - jest
+    - pytest
+    - junit
+    - selenium
+    - test-plan
+    - test-scenario
+    - acceptance-criteria
+    - api-contract
+    - test-strategy
+    - qaops
+
+  entry_agent: qa-chief
+  created_by: "squad-creator-pro"
+  created_at: "2026-03-14"
+
+# -------------------------------------------------------------------------------
+# TIER ARCHITECTURE
+# -------------------------------------------------------------------------------
+
+tiers:
+  tier_0:
+    name: "Triage & Orchestration"
+    agents:
+      - qa-chief
+    purpose: "Triage test requests, route to specialist, coordinate pyramid coverage"
+
+  tier_1:
+    name: "Foundation Testing"
+    agents:
+      - qa-unit
+      - qa-integration
+    purpose: "Core test layers: unit (base) and integration (middle) of the pyramid"
+
+  tier_2:
+    name: "Validation & Strategy"
+    agents:
+      - qa-e2e
+      - qa-analyst
+    purpose: "E2E user flows (pyramid top) and test strategy/scenario derivation"
+
+# -------------------------------------------------------------------------------
+# AGENT REGISTRY
+# -------------------------------------------------------------------------------
+
+agents:
+  qa-chief:
+    file: agents/qa-chief.md
+    tier: 0
+    based_on: "Test Pyramid Orchestration (Martin Fowler / Google Testing Blog)"
+    icon: "🎯"
+    focus: "Triage, pyramid balance, multi-layer coordination"
+
+  qa-unit:
+    file: agents/qa-unit.md
+    tier: 1
+    based_on: "Kent Beck (TDD), Martin Fowler (Unit Test Patterns)"
+    icon: "🧪"
+    focus: "Unit tests, mocks, stubs, spies, coverage, TDD, Jest/PyTest/JUnit"
+
+  qa-integration:
+    file: agents/qa-integration.md
+    tier: 1
+    based_on: "Sam Newman (Building Microservices), Contract Testing"
+    icon: "🔗"
+    focus: "API contracts, persistence tests, service communication, Pact/Supertest"
+
+  qa-e2e:
+    file: agents/qa-e2e.md
+    tier: 2
+    based_on: "Kent C. Dodds (Testing Library), Playwright Team"
+    icon: "🖥️"
+    focus: "User flows, Playwright/Cypress/Selenium, visual regression, accessibility"
+
+  qa-analyst:
+    file: agents/qa-analyst.md
+    tier: 2
+    based_on: "Lisa Crispin & Janet Gregory (Agile Testing)"
+    icon: "📋"
+    focus: "Test scenario derivation, acceptance criteria, manual test plans, BDD"
+
+# -------------------------------------------------------------------------------
+# HANDOFF MATRIX
+# -------------------------------------------------------------------------------
+
+handoffs:
+  qa-chief:
+    routes_to: [qa-unit, qa-integration, qa-e2e, qa-analyst]
+
+  qa-analyst:
+    collaborates_with: [qa-unit, qa-integration, qa-e2e]
+    escalates_to: [qa-chief]
+
+  qa-unit:
+    collaborates_with: [qa-integration, qa-analyst]
+    escalates_to: [qa-chief]
+
+  qa-integration:
+    collaborates_with: [qa-unit, qa-e2e]
+    escalates_to: [qa-chief]
+
+  qa-e2e:
+    collaborates_with: [qa-integration, qa-analyst]
+    escalates_to: [qa-chief]
+
+# -------------------------------------------------------------------------------
+# CROSS-CUTTING CONCERNS
+# -------------------------------------------------------------------------------
+
+cross_cutting:
+  pyramid_awareness:
+    description: "ALL agents understand the test pyramid and their position in it"
+    principle: "More unit tests, fewer integration tests, fewest E2E tests"
+    ratio_guidance: "70:20:10 (unit:integration:e2e)"
+    context_files:
+      - ".claude/CLAUDE.md"
+      - "squads/qaops/data/test-pyramid-patterns.yaml"
+
+  core_qa_integration:
+    description: "QAOps squad complements the core @qa (Quinn) agent"
+    delegation: |
+      - Core @qa handles: story review, quality gates, NFR assessment, risk profiles
+      - QAOps handles: test authoring, test architecture, coverage analysis, scenario derivation
+      - When @qa needs test design, it delegates to @qaops:qa-chief
+
+  quality_standards:
+    min_score: 7.0
+    smoke_tests: 3
+    voice_dna_required: true
+    thinking_dna_required: true
+
+# -------------------------------------------------------------------------------
+# SETTINGS
+# -------------------------------------------------------------------------------
+
+settings:
+  greeting:
+    level: archetypal
+    show_project_status: true
+    show_aiox_context: true
+
+  activation:
+    prefix: "qaops"
+    example: "@qaops:qa-unit"

@@ -1,0 +1,101 @@
+workflow:
+  id: wf-qa-triage
+  name: QAOps Triage Workflow
+  version: "1.0.0"
+  description: |
+    Triage workflow for routing incoming test requests to the appropriate
+    QAOps specialist agent. The QA Chief (Vega) analyzes the request,
+    scores against the routing matrix, and dispatches to the best specialist.
+  type: generic
+  project_types:
+    - greenfield
+    - brownfield
+    - feature-development
+    - bug-fix
+
+  metadata:
+    elicit: false
+    confirmation_required: false
+    squad: qaops
+
+  execution_modes:
+    - mode: yolo
+      description: Automatic routing without confirmation
+      prompts: 0
+      default: true
+    - mode: interactive
+      description: Confirm routing before dispatching
+      prompts: 1-2
+
+  phases:
+    - phase_1: Request Analysis
+    - phase_2: Specialist Dispatch
+
+  sequence:
+    - step: analyze_request
+      id: analyze
+      phase: 1
+      agent: qa-chief
+      action: Analyze and score test request
+      task: triage-test-request.md
+      notes: |
+        Vega analyzes the incoming request:
+        1. Normalize to lowercase
+        2. Score against routing matrix keywords
+        3. Identify pyramid layer(s) involved
+        4. Determine single vs multi-agent routing
+
+        Routing Matrix:
+        - Unit keywords -> qa-unit (Prism)
+        - Integration keywords -> qa-integration (Nexo)
+        - E2E keywords -> qa-e2e (Pixel)
+        - Analysis keywords -> qa-analyst (Sage)
+        - Multi-layer -> Full pyramid workflow
+
+        Criterios de sucesso:
+        - [ ] Request analyzed
+        - [ ] Specialist identified
+      outputs:
+        - routing_decision
+        - specialist_recommendation
+      next: dispatch
+
+    - step: dispatch_to_specialist
+      id: dispatch
+      phase: 2
+      agent: qa-chief
+      action: Route to specialist or start pyramid workflow
+      requires: analyze
+      notes: |
+        Based on analysis:
+        - Single domain: Route to specific specialist
+        - Multi-domain: Start test pyramid workflow
+        - Unclear: Ask user for clarification
+
+        Criterios de sucesso:
+        - [ ] Specialist activated or workflow started
+      outputs:
+        - dispatch_result
+
+    - workflow_end:
+      id: complete
+      action: triage_complete
+
+  decision_guidance:
+    when_to_use:
+      - User enters QAOps squad and needs routing
+      - Ambiguous test request
+      - First interaction with QAOps squad
+
+    when_not_to_use:
+      - User already knows which specialist they want
+      - Direct command to specific agent (e.g., *design-unit)
+
+metadata:
+  author: Vega (QAOps Chief)
+  created_date: 2026-03-14
+  version: 1.0.0
+  tags:
+    - triage
+    - routing
+    - qaops
