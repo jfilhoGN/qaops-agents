@@ -1,7 +1,7 @@
 {
-  "name": "aiox-core",
-  "version": "5.0.3",
-  "description": "Synkra AIOX: AI-Orchestrated System for Full Stack Development - Core Framework",
+  "name": "qaops-agents",
+  "version": "1.0.0",
+  "description": "QAOps — AI-Powered Quality Assurance Platform. 5 specialized QA agents covering the Test Pyramid: unit, integration, E2E, analysis and orchestration.",
   "bin": {
     "aiox": "bin/aiox.js",
     "aiox-core": "bin/aiox.js",
@@ -110,31 +110,31 @@
     "validator": "^13.15.15"
   },
   "keywords": [
-    "ai",
-    "aiox",
-    "agile",
+    "qa",
+    "qaops",
+    "testing",
+    "test-pyramid",
+    "quality-assurance",
     "agents",
-    "orchestrator",
-    "fullstack",
-    "development",
-    "cli",
-    "cross-platform",
-    "interactive",
-    "wizard",
-    "modern-ux",
-    "vite-style",
-    "automation"
+    "unit-testing",
+    "integration-testing",
+    "e2e-testing",
+    "bdd",
+    "playwright",
+    "jest",
+    "claude-code",
+    "ai"
   ],
-  "author": "Synkra AIOX Team",
+  "author": "Joao Martins Filho",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SynkraAI/aiox-core.git"
+    "url": "git+https://github.com/jfilhoGN/qaops-agents.git"
   },
   "bugs": {
-    "url": "https://github.com/SynkraAI/aiox-core/issues"
+    "url": "https://github.com/jfilhoGN/qaops-agents/issues"
   },
-  "homepage": "https://github.com/SynkraAI/aiox-core#readme",
+  "homepage": "https://github.com/jfilhoGN/qaops-agents#readme",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=9.0.0"
