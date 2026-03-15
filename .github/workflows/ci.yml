@@ -115,9 +115,7 @@ jobs:
         run: node packages/qaops-install/bin/qaops.js help
 
       - name: Test QAOps dry-run install
-        run: |
-          mkdir -p /tmp/qaops-test
-          node packages/qaops-install/bin/qaops.js install /tmp/qaops-test --dry-run
+        run: node packages/qaops-install/bin/qaops.js install . --dry-run
 
   summary:
     name: CI Summary
