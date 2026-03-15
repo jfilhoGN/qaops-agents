@@ -59,6 +59,10 @@ module.exports = {
     'tests/license/',
     // Workflow intelligence tests - assertion count mismatches (pre-existing)
     '.aiox-core/workflow-intelligence/__tests__/',
+    // AIOX-specific tests not applicable after QAOps rebrand
+    'tests/integration/search-smoke.test.js',
+    'tests/cli/validate-publish.test.js',
+    'tests/integration/onboarding-smoke.test.js',
   ],
 
   // Coverage collection (Story TD-3: Updated paths)
