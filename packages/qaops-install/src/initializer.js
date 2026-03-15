@@ -147,45 +147,69 @@ coverage/
 async function initQAOps(options) {
   const { projectName, skipGit, skipInstall } = options;
   const projectDir = path.resolve(process.cwd(), projectName);
+  const isOverlay = projectName === '.';
+  const displayName = isOverlay ? path.basename(projectDir) : projectName;
 
-  console.log(`  Project:  ${projectName}`);
-  console.log(`  Location: ${projectDir}\n`);
+  console.log(`  Project:  ${displayName}`);
+  console.log(`  Location: ${projectDir}`);
+  console.log(`  Mode:     ${isOverlay ? 'OVERLAY (existing project)' : 'NEW PROJECT'}\n`);
 
-  // Step 1: Create project directory
-  if (fs.existsSync(projectDir)) {
-    const entries = fs.readdirSync(projectDir);
-    if (entries.length > 0) {
-      throw new Error(
-        `Directory "${projectName}" already exists and is not empty. ` +
-        `Use --force to overwrite or choose a different name.`
-      );
+  // Step 1: Create or validate project directory
+  if (isOverlay) {
+    // Overlay mode: directory must exist
+    if (!fs.existsSync(projectDir)) {
+      throw new Error('Current directory does not exist.');
     }
+    console.log('  ✓ Existing project detected\n');
   } else {
-    fs.mkdirSync(projectDir, { recursive: true });
+    // New project mode: create directory, fail if not empty
+    if (fs.existsSync(projectDir)) {
+      const entries = fs.readdirSync(projectDir);
+      if (entries.length > 0) {
+        throw new Error(
+          `Directory "${projectName}" already exists and is not empty. ` +
+          `Use "npx @jfilhogn/qaops init ." to add QAOps to an existing project, ` +
+          `or choose a different name.`
+        );
+      }
+    } else {
+      fs.mkdirSync(projectDir, { recursive: true });
+    }
+    console.log('  ✓ Project directory created\n');
   }
-  console.log('  ✓ Project directory created\n');
 
-  // Step 2: Initialize package.json
-  console.log('  📦 Initializing package.json...');
-  const packageJson = {
-    name: projectName,
-    version: '1.0.0',
-    description: `${projectName} — QAOps powered project`,
-    scripts: {
-      test: 'echo "Configure your test runner (jest, vitest, pytest)"',
-    },
-    keywords: ['qaops', 'testing', 'test-pyramid'],
-    license: 'MIT',
-  };
-  fs.writeFileSync(
-    path.join(projectDir, 'package.json'),
-    JSON.stringify(packageJson, null, 2) + '\n',
-    'utf-8'
-  );
-  console.log('     ✓ package.json created\n');
+  // Step 2: Initialize package.json (skip if exists in overlay mode)
+  const pkgJsonPath = path.join(projectDir, 'package.json');
+  if (fs.existsSync(pkgJsonPath) && isOverlay) {
+    console.log('  📦 package.json already exists — skipped\n');
+  } else {
+    console.log('  📦 Initializing package.json...');
+    const packageJson = {
+      name: displayName,
+      version: '1.0.0',
+      description: `${displayName} — QAOps powered project`,
+      scripts: {
+        test: 'echo "Configure your test runner (jest, vitest, pytest)"',
+      },
+      keywords: ['qaops', 'testing', 'test-pyramid'],
+      license: 'MIT',
+    };
+    fs.writeFileSync(
+      pkgJsonPath,
+      JSON.stringify(packageJson, null, 2) + '\n',
+      'utf-8'
+    );
+    console.log('     ✓ package.json created\n');
+  }
 
   // Step 3: Create .aiox-core/ minimal structure
-  console.log('  ⚙️  Creating .aiox-core/ structure...');
+  const aioxCorePath = path.join(projectDir, '.aiox-core');
+  if (fs.existsSync(aioxCorePath) && isOverlay) {
+    console.log('  ⚙️  .aiox-core/ already exists — updating config...');
+  } else {
+    console.log('  ⚙️  Creating .aiox-core/ structure...');
+  }
+
   const aioxDirs = [
     '.aiox-core',
     '.aiox-core/core',
@@ -196,14 +220,14 @@ async function initQAOps(options) {
     fs.mkdirSync(path.join(projectDir, dir), { recursive: true });
   }
 
-  // core-config.yaml
+  // core-config.yaml (always write — updated config)
   fs.writeFileSync(
     path.join(projectDir, '.aiox-core', 'core-config.yaml'),
-    CORE_CONFIG.replace('{PROJECT_NAME}', projectName),
+    CORE_CONFIG.replace('{PROJECT_NAME}', displayName),
     'utf-8'
   );
 
-  // executor-assignment.js
+  // executor-assignment.js (always write — updated assignments)
   fs.writeFileSync(
     path.join(projectDir, '.aiox-core', 'core', 'orchestration', 'executor-assignment.js'),
     EXECUTOR_ASSIGNMENT,
@@ -213,21 +237,24 @@ async function initQAOps(options) {
   console.log('     ✓ .aiox-core/ with core-config and executor-assignment\n');
 
   // Step 4: Create .claude/ directory with CLAUDE.md
-  console.log('  🤖 Creating .claude/ structure...');
-  fs.mkdirSync(path.join(projectDir, '.claude', 'agents'), { recursive: true });
-  fs.writeFileSync(
-    path.join(projectDir, '.claude', 'CLAUDE.md'),
-    CLAUDE_MD,
-    'utf-8'
-  );
-  console.log('     ✓ .claude/CLAUDE.md created\n');
+  const claudeMdPath = path.join(projectDir, '.claude', 'CLAUDE.md');
+  if (fs.existsSync(claudeMdPath) && isOverlay) {
+    console.log('  🤖 .claude/CLAUDE.md already exists — skipped');
+    console.log('     (QAOps agent docs will be appended via squad install)\n');
+  } else {
+    console.log('  🤖 Creating .claude/ structure...');
+    fs.mkdirSync(path.join(projectDir, '.claude', 'agents'), { recursive: true });
+    fs.writeFileSync(claudeMdPath, CLAUDE_MD, 'utf-8');
+    console.log('     ✓ .claude/CLAUDE.md created\n');
+  }
 
-  // Step 5: Create .gitignore
-  fs.writeFileSync(
-    path.join(projectDir, '.gitignore'),
-    GITIGNORE,
-    'utf-8'
-  );
+  // Step 5: Create .gitignore (skip if exists in overlay mode)
+  const gitignorePath = path.join(projectDir, '.gitignore');
+  if (fs.existsSync(gitignorePath) && isOverlay) {
+    console.log('  📄 .gitignore already exists — skipped');
+  } else {
+    fs.writeFileSync(gitignorePath, GITIGNORE, 'utf-8');
+  }
 
   // Step 6: Install QAOps squad
   console.log('  🎯 Installing QAOps squad...');
@@ -240,8 +267,9 @@ async function initQAOps(options) {
     skipCore: true, // Already created executor-assignment above
   });
 
-  // Step 7: Initialize git
-  if (!skipGit) {
+  // Step 7: Initialize git (skip if .git/ already exists)
+  const hasGit = fs.existsSync(path.join(projectDir, '.git'));
+  if (!skipGit && !hasGit) {
     console.log('  📁 Initializing git repository...');
     try {
       execSync('git init', { cwd: projectDir, stdio: 'pipe' });
@@ -251,31 +279,46 @@ async function initQAOps(options) {
     } catch {
       console.log('     ⚠ Git init failed (git may not be installed)\n');
     }
+  } else if (hasGit) {
+    console.log('  📁 Git repository already exists — skipped init\n');
   }
 
-  // Step 8: npm install (optional)
-  if (!skipInstall) {
+  // Step 8: npm install (optional, skip in overlay mode)
+  if (!skipInstall && !isOverlay) {
     console.log('  📦 Installing dependencies...');
     try {
       execSync('npm install', { cwd: projectDir, stdio: 'pipe', timeout: 60000 });
       console.log('     ✓ Dependencies installed\n');
     } catch {
-      console.log('     ⚠ npm install failed (run manually: cd ' + projectName + ' && npm install)\n');
+      console.log('     ⚠ npm install failed (run manually: cd ' + displayName + ' && npm install)\n');
     }
   }
 
   // Summary
   console.log('  ═══════════════════════════════════════');
-  console.log('  ✅ QAOps project created successfully!');
+  if (isOverlay) {
+    console.log('  ✅ QAOps added to existing project!');
+  } else {
+    console.log('  ✅ QAOps project created successfully!');
+  }
   console.log('  ═══════════════════════════════════════\n');
 
-  console.log(`  📋 Next steps:
+  if (isOverlay) {
+    console.log(`  📋 Next steps:
+     1. Open with your IDE (Claude Code, Cursor, etc.)
+     2. Activate the QA Chief:  @qaops-chief "test my feature"
+     3. Or go to a specialist:  @qaops-unit, @qaops-integration, @qaops-e2e
+     4. Full pyramid:           @qaops-chief "*test-pyramid login validation"
+  `);
+  } else {
+    console.log(`  📋 Next steps:
      1. cd ${projectName}
      2. Open with your IDE (Claude Code, Cursor, etc.)
      3. Activate the QA Chief:  @qaops-chief "test my feature"
      4. Or go to a specialist:  @qaops-unit, @qaops-integration, @qaops-e2e
      5. Full pyramid:           @qaops-chief "*test-pyramid login validation"
   `);
+  }
 }
 
 module.exports = { initQAOps };

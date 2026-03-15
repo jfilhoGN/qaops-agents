@@ -89,7 +89,8 @@ function printHelp() {
 
   Commands:
     init <name>       Create a new QAOps project from scratch
-    install [dir]     Install QAOps squad into existing project (default: .)
+    init .            Add QAOps to an existing project (overlay mode)
+    install [dir]     Install QAOps squad into existing AIOX project (default: .)
     validate [dir]    Validate existing QAOps installation
     help              Show this help message
 
@@ -104,8 +105,9 @@ function printHelp() {
     --skip-install    Skip npm install
 
   Examples:
-    npx @jfilhogn/qaops init my-qa-project   # Create new project
-    npx @jfilhogn/qaops install              # Install in current directory
+    npx @jfilhogn/qaops init my-qa-project   # Create new project from scratch
+    npx @jfilhogn/qaops init .               # Add QAOps to existing project
+    npx @jfilhogn/qaops install              # Install squad in AIOX project
     npx @jfilhogn/qaops install --dry-run    # Preview installation
     npx @jfilhogn/qaops validate             # Check installation integrity
   `);

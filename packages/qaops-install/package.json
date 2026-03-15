@@ -1,6 +1,6 @@
 {
   "name": "@jfilhogn/qaops",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "QAOps — AI-Powered Quality Assurance Platform. Create or install 5 specialized QA agents covering the Test Pyramid: unit, integration, E2E, analysis and orchestration.",
   "main": "src/installer.js",
   "bin": {
@@ -32,14 +32,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SynkraAI/aiox-core.git",
+    "url": "git+https://github.com/jfilhoGN/qaops-agents.git",
     "directory": "packages/qaops-install"
   },
   "bugs": {
-    "url": "https://github.com/SynkraAI/aiox-core/issues"
+    "url": "https://github.com/jfilhoGN/qaops-agents/issues"
   },
-  "homepage": "https://github.com/SynkraAI/aiox-core/tree/main/squads/qaops#readme",
-  "author": "Synkra AIOX Team",
+  "homepage": "https://github.com/jfilhoGN/qaops-agents/tree/main/squads/qaops#readme",
+  "author": "Joao Martins Filho",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
