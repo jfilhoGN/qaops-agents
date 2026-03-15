@@ -5,6 +5,68 @@ All notable changes to QAOps will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] - 2026-03-15
+
+### GitHub Copilot Compatibility
+
+QAOps agora suporta dois formatos de agentes simultaneamente: Claude Code e GitHub Copilot.
+
+### Added
+
+- 5 agent files em `.github/agents/` no formato Copilot (YAML frontmatter com `tools`, `handoffs`)
+- `.github/copilot-instructions.md` — instrucoes project-wide para Copilot
+- `registerCopilotAgents()` no installer — registra agentes em ambos os formatos
+- Initializer cria `.github/` structure durante `init` (novo e overlay)
+- Bundle script inclui `.github/agents/` e `copilot-instructions.md` no tarball npm
+- Keyword `github-copilot` adicionada ao package.json
+
+### Changed
+
+- `findRepoRoot()` agora prefere o repo root real (com `.git/`) sobre package dirs bundled
+- Summary do installer mostra stats separados para Claude e Copilot agents
+- Next steps no initializer agora lista IDEs suportados (Claude Code/Cursor + Copilot)
+
+### IDEs Suportados
+
+- **Claude Code / Cursor** — `.claude/agents/qaops-*.md` (auto-detected)
+- **GitHub Copilot (VSCode)** — `.github/agents/qaops-*.md` (auto-detected)
+
+## [1.2.0] - 2026-03-15
+
+### Overlay Mode
+
+Suporte para adicionar QAOps a projetos existentes sem sobrescrever configuracoes.
+
+### Added
+
+- Overlay mode: `npx @jfilhogn/qaops init .` adiciona QAOps a projetos existentes
+- Preserva package.json, .gitignore, .git/ existentes
+- Skip npm install em overlay mode
+
+### Fixed
+
+- URLs do repositorio corrigidas de SynkraAI/aiox-core para jfilhoGN/qaops-agents
+- Author corrigido para "Joao Martins Filho"
+
+## [1.1.0] - 2026-03-15
+
+### Project Initializer
+
+Novo comando para criar projetos QAOps do zero.
+
+### Added
+
+- `npx @jfilhogn/qaops init <name>` — cria novo projeto com toda a estrutura
+- Gera: .aiox-core/, .claude/, package.json, executor-assignment.js
+- Git init automatico com primeiro commit
+- npm install automatico (opcional)
+
+### CI/CD
+
+- Reescrita completa do CI workflow (5 jobs limpos)
+- Jest com `--forceExit --detectOpenHandles` para evitar hangs
+- Removidos 15 workflows AIOX-specific
+
 ## [1.0.0] - 2026-03-14
 
 ### QAOps — Test Pyramid Squad (Initial Release)
