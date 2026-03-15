@@ -13,9 +13,12 @@ const { execSync } = require('node:child_process');
  * 1. Create project directory
  * 2. Initialize package.json
  * 3. Create .aiox-core/ minimal structure
- * 4. Create .claude/ directory
- * 5. Install QAOps squad files
- * 6. Initialize git repository
+ * 4. Create .claude/ directory (Claude Code)
+ * 5. Create .github/ directory (GitHub Copilot)
+ * 6. Create .gitignore
+ * 7. Install QAOps squad files (both formats)
+ * 8. Initialize git repository
+ * 9. npm install
  */
 
 const CORE_CONFIG = `# QAOps Project Configuration
@@ -138,6 +141,44 @@ coverage/
 .eslintcache
 `;
 
+const COPILOT_INSTRUCTIONS = `# QAOps — Copilot Instructions
+
+This project uses **QAOps** — an AI-powered Quality Assurance platform based on the Test Pyramid.
+
+## QAOps Agents
+
+This project includes 5 specialized QA agents available via \`@agent-name\`:
+
+| Agent | Persona | Focus |
+|-------|---------|-------|
+| \`@qaops-chief\` | Vega (Strategist) | Triage, pyramid balance, coordination |
+| \`@qaops-unit\` | Prism (Craftsman) | Unit tests, mocks, TDD |
+| \`@qaops-integration\` | Nexo (Connector) | API contracts, persistence |
+| \`@qaops-e2e\` | Pixel (Observer) | Playwright/Cypress, Page Objects, a11y |
+| \`@qaops-analyst\` | Sage (Scholar) | BDD scenarios, test plans, boundary analysis |
+
+## Test Pyramid Ratio
+
+\`\`\`
+Unit: 70% | Integration: 20% | E2E: 10%
+\`\`\`
+
+## Agent Workflow
+
+1. Start with \`@qaops-chief\` for triage — it routes to the right specialist
+2. Or go directly to a specialist for focused work
+3. For full coverage, use the pyramid workflow: Analyst -> Unit -> Integration -> E2E
+
+## Squad Files
+
+Agent knowledge base and task definitions are in \`squads/qaops/\`:
+- \`agents/\` — Full persona definitions
+- \`tasks/\` — Task execution templates
+- \`data/\` — Testing patterns and vocabulary
+- \`workflows/\` — Multi-agent coordination workflows
+- \`checklists/\` — Quality checklists per test layer
+`;
+
 /**
  * @param {Object} options
  * @param {string} options.projectName - Name of the project to create
@@ -248,7 +289,19 @@ async function initQAOps(options) {
     console.log('     ✓ .claude/CLAUDE.md created\n');
   }
 
-  // Step 5: Create .gitignore (skip if exists in overlay mode)
+  // Step 5: Create .github/ directory with copilot-instructions.md
+  const copilotMdPath = path.join(projectDir, '.github', 'copilot-instructions.md');
+  if (fs.existsSync(copilotMdPath) && isOverlay) {
+    console.log('  🐙 .github/copilot-instructions.md already exists — skipped');
+    console.log('     (Copilot agents will be installed via squad install)\n');
+  } else {
+    console.log('  🐙 Creating .github/ structure (Copilot compatibility)...');
+    fs.mkdirSync(path.join(projectDir, '.github', 'agents'), { recursive: true });
+    fs.writeFileSync(copilotMdPath, COPILOT_INSTRUCTIONS, 'utf-8');
+    console.log('     ✓ .github/copilot-instructions.md created\n');
+  }
+
+  // Step 6: Create .gitignore (skip if exists in overlay mode)
   const gitignorePath = path.join(projectDir, '.gitignore');
   if (fs.existsSync(gitignorePath) && isOverlay) {
     console.log('  📄 .gitignore already exists — skipped');
@@ -256,7 +309,7 @@ async function initQAOps(options) {
     fs.writeFileSync(gitignorePath, GITIGNORE, 'utf-8');
   }
 
-  // Step 6: Install QAOps squad
+  // Step 7: Install QAOps squad (copies agents to both .claude/ and .github/)
   console.log('  🎯 Installing QAOps squad...');
   const { installQAOps } = require('./installer');
   await installQAOps({
@@ -267,7 +320,7 @@ async function initQAOps(options) {
     skipCore: true, // Already created executor-assignment above
   });
 
-  // Step 7: Initialize git (skip if .git/ already exists)
+  // Step 8: Initialize git (skip if .git/ already exists)
   const hasGit = fs.existsSync(path.join(projectDir, '.git'));
   if (!skipGit && !hasGit) {
     console.log('  📁 Initializing git repository...');
@@ -283,7 +336,7 @@ async function initQAOps(options) {
     console.log('  📁 Git repository already exists — skipped init\n');
   }
 
-  // Step 8: npm install (optional, skip in overlay mode)
+  // Step 9: npm install (optional, skip in overlay mode)
   if (!skipInstall && !isOverlay) {
     console.log('  📦 Installing dependencies...');
     try {
@@ -305,18 +358,26 @@ async function initQAOps(options) {
 
   if (isOverlay) {
     console.log(`  📋 Next steps:
-     1. Open with your IDE (Claude Code, Cursor, etc.)
+     1. Open with your IDE
      2. Activate the QA Chief:  @qaops-chief "test my feature"
      3. Or go to a specialist:  @qaops-unit, @qaops-integration, @qaops-e2e
      4. Full pyramid:           @qaops-chief "*test-pyramid login validation"
+
+  🔌 Supported IDEs:
+     - Claude Code / Cursor   → .claude/agents/ (auto-detected)
+     - GitHub Copilot (VSCode) → .github/agents/ (auto-detected)
   `);
   } else {
     console.log(`  📋 Next steps:
      1. cd ${projectName}
-     2. Open with your IDE (Claude Code, Cursor, etc.)
+     2. Open with your IDE
      3. Activate the QA Chief:  @qaops-chief "test my feature"
      4. Or go to a specialist:  @qaops-unit, @qaops-integration, @qaops-e2e
      5. Full pyramid:           @qaops-chief "*test-pyramid login validation"
+
+  🔌 Supported IDEs:
+     - Claude Code / Cursor   → .claude/agents/ (auto-detected)
+     - GitHub Copilot (VSCode) → .github/agents/ (auto-detected)
   `);
   }
 }

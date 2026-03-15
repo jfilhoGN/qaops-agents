@@ -11,9 +11,10 @@ const path = require('node:path');
  * Steps:
  * 1. Validate target is an AIOX project
  * 2. Copy squads/qaops/ directory
- * 3. Register agents in .claude/agents/
- * 4. Patch executor-assignment.js with testing story type
- * 5. Validate installation
+ * 3. Register agents in .claude/agents/ (Claude Code)
+ * 4. Register agents in .github/agents/ (GitHub Copilot)
+ * 5. Patch executor-assignment.js with testing story type
+ * 6. Validate installation
  */
 
 const SQUAD_SOURCE_DIR = 'squads/qaops';
@@ -79,22 +80,29 @@ async function installQAOps(options) {
   // Step 3: Copy squad directory
   const squadStats = copySquadDirectory(sourceDir, targetDir, { force, dryRun });
 
-  // Step 4: Register agents
+  // Step 4: Register Claude Code agents
   let agentStats = { copied: 0, skipped: 0 };
   if (!skipAgents) {
     agentStats = registerAgents(sourceDir, targetDir, { force, dryRun });
   }
 
-  // Step 5: Patch executor-assignment.js
+  // Step 5: Register GitHub Copilot agents
+  let copilotStats = { copied: 0, skipped: 0 };
+  if (!skipAgents) {
+    copilotStats = registerCopilotAgents(sourceDir, targetDir, { force, dryRun });
+  }
+
+  // Step 6: Patch executor-assignment.js
   let corePatched = false;
   if (!skipCore) {
     corePatched = patchExecutorAssignment(targetDir, { force, dryRun });
   }
 
-  // Step 6: Summary
+  // Step 7: Summary
   printSummary({
     squadStats,
     agentStats,
+    copilotStats,
     corePatched,
     dryRun,
     skipAgents,
@@ -160,19 +168,25 @@ function resolveSourceDir() {
 }
 
 /**
- * Walks up the directory tree to find the aiox-core repo root
+ * Walks up the directory tree to find the aiox-core repo root.
+ * Prefers the actual git repo root over bundled package directories.
  */
 function findRepoRoot() {
   let dir = __dirname;
+  let firstMatch = null;
   for (let i = 0; i < 10; i++) {
     if (fs.existsSync(path.join(dir, SQUAD_SOURCE_DIR, 'config.yaml'))) {
-      return dir;
+      // Prefer actual repo root (has .git/) over bundled package dir
+      if (fs.existsSync(path.join(dir, '.git'))) {
+        return dir;
+      }
+      if (!firstMatch) firstMatch = dir;
     }
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
   }
-  return null;
+  return firstMatch;
 }
 
 /**
@@ -277,6 +291,72 @@ function registerAgents(sourceDir, targetDir, options) {
 }
 
 /**
+ * Registers QAOps agents in .github/agents/ (GitHub Copilot format)
+ */
+function registerCopilotAgents(sourceDir, targetDir, options) {
+  const agentsDir = path.join(targetDir, '.github', 'agents');
+  const srcAgentsDir = path.join(sourceDir, '.github', 'agents');
+
+  const stats = { copied: 0, skipped: 0 };
+
+  console.log('  🐙 Registering agents in .github/agents/ (Copilot)...');
+
+  if (!fs.existsSync(srcAgentsDir)) {
+    console.log('     [SKIP] No Copilot agent sources found\n');
+    return stats;
+  }
+
+  if (!options.dryRun && !fs.existsSync(agentsDir)) {
+    fs.mkdirSync(agentsDir, { recursive: true });
+  }
+
+  for (const agentFile of AGENT_FILES) {
+    const srcPath = path.join(srcAgentsDir, agentFile);
+    const destPath = path.join(agentsDir, agentFile);
+
+    if (!fs.existsSync(srcPath)) {
+      stats.skipped++;
+      continue;
+    }
+
+    if (fs.existsSync(destPath) && !options.force) {
+      stats.skipped++;
+      if (options.dryRun) {
+        console.log(`     [SKIP] .github/agents/${agentFile}`);
+      }
+    } else {
+      if (options.dryRun) {
+        console.log(`     [COPY] .github/agents/${agentFile}`);
+      } else {
+        fs.copyFileSync(srcPath, destPath);
+      }
+      stats.copied++;
+    }
+  }
+
+  // Also copy copilot-instructions.md if available
+  const instructionsSrc = path.join(sourceDir, '.github', 'copilot-instructions.md');
+  const instructionsDest = path.join(targetDir, '.github', 'copilot-instructions.md');
+  if (fs.existsSync(instructionsSrc)) {
+    if (fs.existsSync(instructionsDest) && !options.force) {
+      if (options.dryRun) {
+        console.log('     [SKIP] .github/copilot-instructions.md');
+      }
+    } else {
+      if (options.dryRun) {
+        console.log('     [COPY] .github/copilot-instructions.md');
+      } else {
+        fs.copyFileSync(instructionsSrc, instructionsDest);
+      }
+      stats.copied++;
+    }
+  }
+
+  console.log(`     ${stats.copied} Copilot agents registered, ${stats.skipped} skipped\n`);
+  return stats;
+}
+
+/**
  * Patches executor-assignment.js to add the testing story type
  */
 function patchExecutorAssignment(targetDir, options) {
@@ -329,7 +409,7 @@ function patchExecutorAssignment(targetDir, options) {
 /**
  * Prints installation summary
  */
-function printSummary({ squadStats, agentStats, corePatched, dryRun, skipAgents, skipCore }) {
+function printSummary({ squadStats, agentStats, copilotStats, corePatched, dryRun, skipAgents, skipCore }) {
   const prefix = dryRun ? '  [DRY RUN] ' : '  ';
 
   console.log('  ═══════════════════════════════════════');
@@ -339,7 +419,8 @@ function printSummary({ squadStats, agentStats, corePatched, dryRun, skipAgents,
   console.log(`  Squad files:    ${squadStats.copied} copied, ${squadStats.skipped} skipped`);
 
   if (!skipAgents) {
-    console.log(`  Agent files:    ${agentStats.copied} registered, ${agentStats.skipped} skipped`);
+    console.log(`  Claude agents:  ${agentStats.copied} registered, ${agentStats.skipped} skipped`);
+    console.log(`  Copilot agents: ${copilotStats.copied} registered, ${copilotStats.skipped} skipped`);
   }
 
   if (!skipCore) {
