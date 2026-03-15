@@ -54,6 +54,28 @@ async function main() {
       console.error(`\n  ❌ Validation failed: ${error.message}`);
       process.exit(1);
     }
+  } else if (command === 'init') {
+    const positionalArgs = args.slice(1).filter(a => !a.startsWith('--'));
+    const projectName = positionalArgs[0];
+
+    if (!projectName) {
+      console.error('  ❌ Project name is required.\n');
+      console.log('  Usage: npx @jfilhogn/qaops init <project-name>\n');
+      process.exit(1);
+    }
+
+    const { initQAOps } = require('../src/initializer');
+
+    try {
+      await initQAOps({
+        projectName,
+        skipGit: args.includes('--skip-git'),
+        skipInstall: args.includes('--skip-install'),
+      });
+    } catch (error) {
+      console.error(`\n  ❌ Init failed: ${error.message}`);
+      process.exit(1);
+    }
   } else {
     console.error(`  Unknown command: ${command}`);
     printHelp();
@@ -66,19 +88,24 @@ function printHelp() {
   Usage: npx @jfilhogn/qaops <command> [target] [options]
 
   Commands:
-    install [dir]     Install QAOps squad into target project (default: .)
+    init <name>       Create a new QAOps project from scratch
+    install [dir]     Install QAOps squad into existing project (default: .)
     validate [dir]    Validate existing QAOps installation
     help              Show this help message
 
-  Options:
+  Options (install):
     --force           Overwrite existing files
     --dry-run         Show what would be installed without writing
     --skip-agents     Skip .claude/agents/ registration
     --skip-core       Skip executor-assignment.js modification
 
+  Options (init):
+    --skip-git        Skip git init
+    --skip-install    Skip npm install
+
   Examples:
+    npx @jfilhogn/qaops init my-qa-project   # Create new project
     npx @jfilhogn/qaops install              # Install in current directory
-    npx @jfilhogn/qaops install ./my-project # Install in specific project
     npx @jfilhogn/qaops install --dry-run    # Preview installation
     npx @jfilhogn/qaops validate             # Check installation integrity
   `);
