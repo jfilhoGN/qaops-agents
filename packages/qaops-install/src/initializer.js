@@ -12,97 +12,13 @@ const { execSync } = require('node:child_process');
  * Steps:
  * 1. Create project directory
  * 2. Initialize package.json
- * 3. Create .aiox-core/ minimal structure
- * 4. Create .claude/ directory (Claude Code)
- * 5. Create .github/ directory (GitHub Copilot)
- * 6. Create .gitignore
- * 7. Install QAOps squad files (both formats)
- * 8. Initialize git repository
- * 9. npm install
+ * 3. Create .claude/ directory (Claude Code)
+ * 4. Create .github/ directory (GitHub Copilot)
+ * 5. Create .gitignore
+ * 6. Install QAOps squad files (both formats)
+ * 7. Initialize git repository
+ * 8. npm install
  */
-
-const CORE_CONFIG = `# QAOps Project Configuration
-project:
-  name: "{PROJECT_NAME}"
-  type: qaops
-  version: 1.0.0
-
-boundary:
-  frameworkProtection: false
-
-agents:
-  qa-chief:
-    id: qa-chief
-    persona: Vega
-    tier: 0
-  qa-unit:
-    id: qa-unit
-    persona: Prism
-    tier: 1
-  qa-integration:
-    id: qa-integration
-    persona: Nexo
-    tier: 1
-  qa-e2e:
-    id: qa-e2e
-    persona: Pixel
-    tier: 2
-  qa-analyst:
-    id: qa-analyst
-    persona: Sage
-    tier: 2
-`;
-
-const EXECUTOR_ASSIGNMENT = `'use strict';
-
-/**
- * Executor Assignment Table
- *
- * Maps story types to executors based on keyword scoring.
- */
-
-const EXECUTOR_ASSIGNMENT_TABLE = {
-  testing: {
-    keywords: [
-      'test', 'testing', 'unit_test', 'integration_test', 'e2e',
-      'end_to_end', 'coverage', 'mock', 'stub', 'fixture',
-      'test_plan', 'test_strategy', 'test_pyramid', 'playwright',
-      'cypress', 'jest', 'pytest', 'acceptance_test', 'test_scenario', 'test_suite',
-    ],
-    executor: '@qa',
-    quality_gate: '@architect',
-    quality_gate_tools: ['test_review', 'coverage_validation', 'pyramid_balance_check'],
-  },
-};
-
-/**
- * Detect story type from title/description using keyword scoring.
- */
-function detectStoryType(text) {
-  const normalized = text.toLowerCase().replace(/[^a-z0-9_\\s]/g, ' ');
-  const words = normalized.split(/\\s+/);
-
-  let bestType = null;
-  let bestScore = 0;
-
-  for (const [type, config] of Object.entries(EXECUTOR_ASSIGNMENT_TABLE)) {
-    let score = 0;
-    for (const keyword of config.keywords) {
-      if (words.includes(keyword) || normalized.includes(keyword)) {
-        score++;
-      }
-    }
-    if (score > bestScore) {
-      bestScore = score;
-      bestType = type;
-    }
-  }
-
-  return bestType;
-}
-
-module.exports = { EXECUTOR_ASSIGNMENT_TABLE, detectStoryType };
-`;
 
 const CLAUDE_MD = `# CLAUDE.md - QAOps Project
 
@@ -243,41 +159,7 @@ async function initQAOps(options) {
     console.log('     ✓ package.json created\n');
   }
 
-  // Step 3: Create .aiox-core/ minimal structure
-  const aioxCorePath = path.join(projectDir, '.aiox-core');
-  if (fs.existsSync(aioxCorePath) && isOverlay) {
-    console.log('  ⚙️  .aiox-core/ already exists — updating config...');
-  } else {
-    console.log('  ⚙️  Creating .aiox-core/ structure...');
-  }
-
-  const aioxDirs = [
-    '.aiox-core',
-    '.aiox-core/core',
-    '.aiox-core/core/orchestration',
-    '.aiox-core/data',
-  ];
-  for (const dir of aioxDirs) {
-    fs.mkdirSync(path.join(projectDir, dir), { recursive: true });
-  }
-
-  // core-config.yaml (always write — updated config)
-  fs.writeFileSync(
-    path.join(projectDir, '.aiox-core', 'core-config.yaml'),
-    CORE_CONFIG.replace('{PROJECT_NAME}', displayName),
-    'utf-8'
-  );
-
-  // executor-assignment.js (always write — updated assignments)
-  fs.writeFileSync(
-    path.join(projectDir, '.aiox-core', 'core', 'orchestration', 'executor-assignment.js'),
-    EXECUTOR_ASSIGNMENT,
-    'utf-8'
-  );
-
-  console.log('     ✓ .aiox-core/ with core-config and executor-assignment\n');
-
-  // Step 4: Create .claude/ directory with CLAUDE.md
+  // Step 3: Create .claude/ directory with CLAUDE.md
   const claudeMdPath = path.join(projectDir, '.claude', 'CLAUDE.md');
   if (fs.existsSync(claudeMdPath) && isOverlay) {
     console.log('  🤖 .claude/CLAUDE.md already exists — skipped');
@@ -289,7 +171,7 @@ async function initQAOps(options) {
     console.log('     ✓ .claude/CLAUDE.md created\n');
   }
 
-  // Step 5: Create .github/ directory with copilot-instructions.md
+  // Step 4: Create .github/ directory with copilot-instructions.md
   const copilotMdPath = path.join(projectDir, '.github', 'copilot-instructions.md');
   if (fs.existsSync(copilotMdPath) && isOverlay) {
     console.log('  🐙 .github/copilot-instructions.md already exists — skipped');
@@ -301,7 +183,7 @@ async function initQAOps(options) {
     console.log('     ✓ .github/copilot-instructions.md created\n');
   }
 
-  // Step 6: Create .gitignore (skip if exists in overlay mode)
+  // Step 5: Create .gitignore (skip if exists in overlay mode)
   const gitignorePath = path.join(projectDir, '.gitignore');
   if (fs.existsSync(gitignorePath) && isOverlay) {
     console.log('  📄 .gitignore already exists — skipped');
@@ -309,7 +191,7 @@ async function initQAOps(options) {
     fs.writeFileSync(gitignorePath, GITIGNORE, 'utf-8');
   }
 
-  // Step 7: Install QAOps squad (copies agents to both .claude/ and .github/)
+  // Step 6: Install QAOps squad (copies agents to both .claude/ and .github/)
   console.log('  🎯 Installing QAOps squad...');
   const { installQAOps } = require('./installer');
   await installQAOps({
@@ -317,10 +199,9 @@ async function initQAOps(options) {
     force: true,
     dryRun: false,
     skipAgents: false,
-    skipCore: true, // Already created executor-assignment above
   });
 
-  // Step 8: Initialize git (skip if .git/ already exists)
+  // Step 7: Initialize git (skip if .git/ already exists)
   const hasGit = fs.existsSync(path.join(projectDir, '.git'));
   if (!skipGit && !hasGit) {
     console.log('  📁 Initializing git repository...');
@@ -336,7 +217,7 @@ async function initQAOps(options) {
     console.log('  📁 Git repository already exists — skipped init\n');
   }
 
-  // Step 9: npm install (optional, skip in overlay mode)
+  // Step 8: npm install (optional, skip in overlay mode)
   if (!skipInstall && !isOverlay) {
     console.log('  📦 Installing dependencies...');
     try {

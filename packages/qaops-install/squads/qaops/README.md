@@ -7,12 +7,14 @@ Cinco agentes autonomos operam como uma consultoria de QA senior, cobrindo toda 
 ## Instalacao
 
 ```bash
-npx @jfilhogn/qaops install           # Instala no projeto AIOX atual
+npx @jfilhogn/qaops init my-project   # Criar projeto QAOps do zero
+npx @jfilhogn/qaops init .            # Adicionar QAOps a projeto existente
+npx @jfilhogn/qaops install           # Instala no diretorio atual
 npx @jfilhogn/qaops install --dry-run # Preview sem escrever arquivos
 npx @jfilhogn/qaops validate          # Valida instalacao existente
 ```
 
-**Pre-requisito:** Projeto com AIOX instalado (`npx aiox-core install`).
+**Pre-requisito:** Node.js >= 18.
 
 ## Agentes QA Especializados
 
@@ -156,18 +158,9 @@ squads/qaops/
     └── testing-vocabulary.yaml    #   Vocabulario compartilhado
 ```
 
-## Integracao com QA Core
+## Integracao
 
-O QAOps **complementa** o agente QA core (Quinn), nao o substitui:
-
-| Responsabilidade | Dono |
-|-----------------|------|
-| Story review, quality gates, NFR assessment | Quinn (@qa) |
-| Design de testes, autoria, cobertura | QAOps Squad |
-| Risk profiles, security review | Quinn (@qa) |
-| Derivacao de cenarios, planos de teste | QAOps Squad |
-
-Quinn delega para `@qaops-chief` quando precisa de design de testes durante `*review` ou `*test-design`.
+O QAOps funciona de forma **standalone** em qualquer projeto. Se usado junto com AIOX, complementa o agente QA core (Quinn) — Quinn faz story review e quality gates, QAOps faz design de testes e cobertura.
 
 ## Licenca
 

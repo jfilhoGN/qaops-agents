@@ -17,7 +17,7 @@ const path = require('node:path');
 
 const PACKAGE_ROOT = path.resolve(__dirname, '..');
 
-// Find the aiox-core repo root (prefer actual git repo over bundled package)
+// Find the repo root containing squads/qaops/ (prefer actual git repo over bundled package)
 function findRepoRoot() {
   let dir = PACKAGE_ROOT;
   let firstMatch = null;
@@ -63,7 +63,7 @@ function main() {
   const repoRoot = findRepoRoot();
 
   if (!repoRoot) {
-    console.error('ERROR: Cannot find aiox-core repo root. Run from within the repository.');
+    console.error('ERROR: Cannot find repo root with squads/qaops/. Run from within the repository.');
     process.exit(1);
   }
 

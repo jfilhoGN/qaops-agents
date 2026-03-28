@@ -24,7 +24,7 @@
 
 ### Added
 - `npx @jfilhogn/qaops init <name>` command to create new QAOps projects from scratch
-- Generates .aiox-core/, .claude/, package.json, executor-assignment.js, git init
+- Generates .claude/, .github/, package.json, squads/qaops/, git init
 
 ## [1.0.0] - 2026-03-14
 

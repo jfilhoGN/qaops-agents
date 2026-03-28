@@ -10,10 +10,9 @@ const path = require('node:path');
  *
  * Checks:
  * 1. Squad directory structure exists
- * 2. All agent files present
+ * 2. All squad files present
  * 3. Claude Code agent registrations exist
- * 4. Executor assignment has testing story type
- * 5. Config files are parseable
+ * 4. Config files are parseable
  */
 
 const REQUIRED_SQUAD_FILES = [
@@ -81,12 +80,7 @@ async function validateInstallation(targetDir) {
   }
   console.log('');
 
-  // Check 4: Executor assignment patch
-  console.log('  ⚙️  Core integration...');
-  checkExecutorAssignment(targetDir, results);
-  console.log('');
-
-  // Check 5: Config parseable
+  // Check 4: Config parseable
   console.log('  📋 Config validation...');
   checkConfigParseable(targetDir, results);
   console.log('');
@@ -107,33 +101,6 @@ function checkExists(targetDir, relativePath, label, results) {
     console.log(`     ✗ Missing: ${label}`);
     results.failed++;
     results.details.push(`Missing: ${label}`);
-  }
-}
-
-function checkExecutorAssignment(targetDir, results) {
-  const filePath = path.join(
-    targetDir,
-    '.aiox-core',
-    'core',
-    'orchestration',
-    'executor-assignment.js'
-  );
-
-  if (!fs.existsSync(filePath)) {
-    console.log('     ⚠ executor-assignment.js not found (non-standard layout)');
-    results.warnings++;
-    return;
-  }
-
-  const content = fs.readFileSync(filePath, 'utf-8');
-
-  if (content.includes('testing:') && content.includes('test_pyramid')) {
-    console.log('     ✓ testing story type present in executor-assignment.js');
-    results.passed++;
-  } else {
-    console.log('     ✗ testing story type NOT found in executor-assignment.js');
-    results.failed++;
-    results.details.push('Missing testing story type in executor-assignment.js');
   }
 }
 

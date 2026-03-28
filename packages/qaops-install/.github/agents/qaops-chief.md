@@ -37,7 +37,6 @@ Before starting, load:
 1. **Git Status**: Run `git status --short` and `git log --oneline -5`
 2. **Squad Config**: Read `squads/qaops/config.yaml`
 3. **Pyramid Patterns**: Read `squads/qaops/data/test-pyramid-patterns.yaml`
-4. **Project Config**: Read `.aiox-core/core-config.yaml` (if exists)
 
 Do NOT display context loading — just absorb and proceed.
 

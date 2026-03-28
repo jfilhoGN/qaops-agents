@@ -6,15 +6,14 @@ const path = require('node:path');
 /**
  * QAOps Squad Installer
  *
- * Installs the QAOps Test Pyramid squad into an existing AIOX project.
+ * Installs the QAOps Test Pyramid squad into an existing project.
  *
  * Steps:
- * 1. Validate target is an AIOX project
+ * 1. Validate target directory exists
  * 2. Copy squads/qaops/ directory
  * 3. Register agents in .claude/agents/ (Claude Code)
  * 4. Register agents in .github/agents/ (GitHub Copilot)
- * 5. Patch executor-assignment.js with testing story type
- * 6. Validate installation
+ * 5. Validate installation
  */
 
 const SQUAD_SOURCE_DIR = 'squads/qaops';
@@ -27,35 +26,6 @@ const AGENT_FILES = [
   'qaops-analyst.md',
 ];
 
-const TESTING_STORY_TYPE = `
-  // Testing: test design, test strategy, coverage, QA (added by QAOps installer)
-  testing: {
-    keywords: [
-      'test',
-      'testing',
-      'unit_test',
-      'integration_test',
-      'e2e',
-      'end_to_end',
-      'coverage',
-      'mock',
-      'stub',
-      'fixture',
-      'test_plan',
-      'test_strategy',
-      'test_pyramid',
-      'playwright',
-      'cypress',
-      'jest',
-      'pytest',
-      'acceptance_test',
-      'test_scenario',
-      'test_suite',
-    ],
-    executor: '@qa',
-    quality_gate: '@architect',
-    quality_gate_tools: ['test_review', 'coverage_validation', 'pyramid_balance_check'],
-  },`;
 
 /**
  * @param {Object} options
@@ -63,10 +33,9 @@ const TESTING_STORY_TYPE = `
  * @param {boolean} options.force - Overwrite existing files
  * @param {boolean} options.dryRun - Preview without writing
  * @param {boolean} options.skipAgents - Skip .claude/agents/ registration
- * @param {boolean} options.skipCore - Skip executor-assignment.js patch
  */
 async function installQAOps(options) {
-  const { targetDir, force, dryRun, skipAgents, skipCore } = options;
+  const { targetDir, force, dryRun, skipAgents } = options;
 
   console.log(`  Target: ${targetDir}`);
   console.log(`  Mode:   ${dryRun ? 'DRY RUN (no files written)' : force ? 'FORCE (overwrite)' : 'NORMAL'}\n`);
@@ -92,58 +61,34 @@ async function installQAOps(options) {
     copilotStats = registerCopilotAgents(sourceDir, targetDir, { force, dryRun });
   }
 
-  // Step 6: Patch executor-assignment.js
-  let corePatched = false;
-  if (!skipCore) {
-    corePatched = patchExecutorAssignment(targetDir, { force, dryRun });
-  }
-
-  // Step 7: Summary
+  // Step 6: Summary
   printSummary({
     squadStats,
     agentStats,
     copilotStats,
-    corePatched,
     dryRun,
     skipAgents,
-    skipCore,
   });
 }
 
 /**
- * Validates that the target directory is an AIOX project
+ * Validates that the target directory exists
  */
 function validateTarget(targetDir) {
   if (!fs.existsSync(targetDir)) {
     throw new Error(`Target directory does not exist: ${targetDir}`);
   }
 
-  const aioxCore = path.join(targetDir, '.aiox-core');
-  if (!fs.existsSync(aioxCore)) {
-    throw new Error(
-      `Not an AIOX project (missing .aiox-core/). ` +
-      `Run 'npx aiox-core install' first to set up AIOX.`
-    );
-  }
-
-  const claudeDir = path.join(targetDir, '.claude');
-  if (!fs.existsSync(claudeDir)) {
-    throw new Error(
-      `Missing .claude/ directory. ` +
-      `Run 'npx aiox-core install' first to set up Claude Code integration.`
-    );
-  }
-
-  console.log('  ✓ Target is a valid AIOX project\n');
+  console.log('  ✓ Target directory validated\n');
 }
 
 /**
  * Resolves the source directory for QAOps files.
- * First checks if running from within the aiox-core repo,
+ * First checks if running from within the source repo,
  * then falls back to the package's bundled files.
  */
 function resolveSourceDir() {
-  // Option 1: Running from within aiox-core repo
+  // Option 1: Running from within the source repo
   const repoRoot = findRepoRoot();
   if (repoRoot) {
     const squadDir = path.join(repoRoot, SQUAD_SOURCE_DIR);
@@ -163,12 +108,12 @@ function resolveSourceDir() {
 
   throw new Error(
     'Cannot find QAOps source files. Ensure you are running from ' +
-    'within the aiox-core repository or have the bundled files.'
+    'within the QAOps repository or have the bundled files.'
   );
 }
 
 /**
- * Walks up the directory tree to find the aiox-core repo root.
+ * Walks up the directory tree to find the repo root.
  * Prefers the actual git repo root over bundled package directories.
  */
 function findRepoRoot() {
@@ -357,59 +302,9 @@ function registerCopilotAgents(sourceDir, targetDir, options) {
 }
 
 /**
- * Patches executor-assignment.js to add the testing story type
- */
-function patchExecutorAssignment(targetDir, options) {
-  const filePath = path.join(
-    targetDir,
-    '.aiox-core',
-    'core',
-    'orchestration',
-    'executor-assignment.js'
-  );
-
-  console.log('  ⚙️  Patching executor-assignment.js...');
-
-  if (!fs.existsSync(filePath)) {
-    console.log('     [SKIP] File not found (not a standard AIOX layout)\n');
-    return false;
-  }
-
-  const content = fs.readFileSync(filePath, 'utf-8');
-
-  // Check if already patched
-  if (content.includes('testing:') && content.includes('test_pyramid')) {
-    console.log('     [SKIP] Already contains testing story type\n');
-    return false;
-  }
-
-  // Find the closing of the EXECUTOR_ASSIGNMENT_TABLE
-  const marker = "quality_gate_tools: ['architecture_review', 'impact_analysis'],\n  },\n};";
-
-  if (!content.includes(marker)) {
-    console.log('     [WARN] Could not find insertion point. Manual patch needed.\n');
-    return false;
-  }
-
-  if (options.dryRun) {
-    console.log('     [PATCH] Would add testing story type\n');
-    return true;
-  }
-
-  const patched = content.replace(
-    marker,
-    `quality_gate_tools: ['architecture_review', 'impact_analysis'],\n  },\n${TESTING_STORY_TYPE}\n};`
-  );
-
-  fs.writeFileSync(filePath, patched, 'utf-8');
-  console.log('     ✓ Added testing story type\n');
-  return true;
-}
-
-/**
  * Prints installation summary
  */
-function printSummary({ squadStats, agentStats, copilotStats, corePatched, dryRun, skipAgents, skipCore }) {
+function printSummary({ squadStats, agentStats, copilotStats, dryRun, skipAgents }) {
   const prefix = dryRun ? '  [DRY RUN] ' : '  ';
 
   console.log('  ═══════════════════════════════════════');
@@ -421,10 +316,6 @@ function printSummary({ squadStats, agentStats, copilotStats, corePatched, dryRu
   if (!skipAgents) {
     console.log(`  Claude agents:  ${agentStats.copied} registered, ${agentStats.skipped} skipped`);
     console.log(`  Copilot agents: ${copilotStats.copied} registered, ${copilotStats.skipped} skipped`);
-  }
-
-  if (!skipCore) {
-    console.log(`  Core patched:   ${corePatched ? 'Yes (testing story type added)' : 'No (already patched or skipped)'}`);
   }
 
   console.log(`

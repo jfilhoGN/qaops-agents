@@ -33,7 +33,6 @@ async function main() {
       force: args.includes('--force'),
       dryRun: args.includes('--dry-run'),
       skipAgents: args.includes('--skip-agents'),
-      skipCore: args.includes('--skip-core'),
     };
 
     try {
@@ -90,7 +89,7 @@ function printHelp() {
   Commands:
     init <name>       Create a new QAOps project from scratch
     init .            Add QAOps to an existing project (overlay mode)
-    install [dir]     Install QAOps squad into existing AIOX project (default: .)
+    install [dir]     Install QAOps squad into existing project (default: .)
     validate [dir]    Validate existing QAOps installation
     help              Show this help message
 
@@ -98,7 +97,6 @@ function printHelp() {
     --force           Overwrite existing files
     --dry-run         Show what would be installed without writing
     --skip-agents     Skip .claude/agents/ registration
-    --skip-core       Skip executor-assignment.js modification
 
   Options (init):
     --skip-git        Skip git init
@@ -107,7 +105,7 @@ function printHelp() {
   Examples:
     npx @jfilhogn/qaops init my-qa-project   # Create new project from scratch
     npx @jfilhogn/qaops init .               # Add QAOps to existing project
-    npx @jfilhogn/qaops install              # Install squad in AIOX project
+    npx @jfilhogn/qaops install              # Install squad in current project
     npx @jfilhogn/qaops install --dry-run    # Preview installation
     npx @jfilhogn/qaops validate             # Check installation integrity
   `);
